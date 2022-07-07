@@ -1,0 +1,38 @@
+[config]
+skip_core_tasks = true
+
+[tasks.build-debug]
+command = "cargo"
+args = ["build"]
+
+[tasks.build-release]
+command = "cargo"
+args = ["build", "--release"]
+
+[tasks.pack-rom]
+script_runner = "@duckscript"
+script = [
+'''
+release_target = get_env RELEASE_TARGET
+build_path = set ./target/thumbv4t-none-eabi/${release_target}
+exists = is_path_exists ${build_path}/lib{{project-name}}.rlib
+if ${exists}
+    echo "packing {{project-name}} in ${release_target}"
+    exec arm-none-eabi-objcopy -O binary ${build_path}/lib{{project-name}}.rlib ./{{project-name}}-${release_target}.gba
+    echo "fixing headers"
+    exec gbafix ./{{project-name}}-${release_target}.gba
+else
+    echo "binary not found for ${release_target}"
+end
+'''
+]
+
+[tasks.pack-debug]
+dependencies = ["build-debug"]
+env = { RELEASE_TARGET = "debug" }
+run_task = "pack-rom"
+
+[tasks.pack-release]
+dependencies = ["build-release"]
+env = { RELEASE_TARGET = "release" }
+run_task = "pack-rom"
