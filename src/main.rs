@@ -10,7 +10,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 }
 
 #[no_mangle]
-pub fn main() -> ! {
+extern "C" fn main() -> ! {
     loop {
         
     }
